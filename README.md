@@ -1,6 +1,5 @@
-# Trading-metrics-datamodel
+# Trade Data Warehouse Model
 
-Trade Data Warehouse Model
 
 This repository contains the complete Trade Data Warehouse (DWH) dimensional model used for analytics, reporting, and historical trade snapshots.
 It includes:
