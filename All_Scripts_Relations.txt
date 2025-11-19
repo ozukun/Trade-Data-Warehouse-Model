@@ -1,0 +1,177 @@
+Project sample {
+  database_type: "SQL Server"
+}
+
+/* ===== Tables ===== */
+
+Table DIM_DATE {
+  date_key int [pk, note: ""] 
+  full_date date
+  year int
+  quarter int
+  month int
+  day_of_month int
+  day_name varchar
+  is_weekend bit
+}
+
+Table FACT_TRADE_SNAPSHOT {
+  fact_snapshot_key int [pk]
+
+  snapshot_date_key int [note: "FK → DIM_DATE.date_key"]
+  company_key       int [note: "FK → DIM_COMPANY.company_key"]
+  account_key       int [note: "FK → DIM_ACCOUNT.account_key"]
+  product_key       int [note: "FK → DIM_PRODUCT.product_key"]
+  trader_key        int [note: "FK → DIM_TRADER.trader_key"]
+  currency_id       int [note: "FK → DIM_CURRENCY.currency_id"]
+  uom_id            int [note: "FK → DIM_UOM.uom_id"]
+  direction_key     int [note: "FK → DIM_DIRECTION.direction_key"]
+  tradestatus_key   int [note: "FK → DIM_TRADESTATUS.tradestatus_key"]
+  tradetype_key     int [note: "FK → DIM_TRADETYPE.tradetype_key"]
+  recordsource_key  int [note: "FK → DIM_RECORDSOURCE.recordsource_key"]
+  matchind_key      int [note: "FK → DIM_MATCHIND.matchind_key"]
+
+  tradeline_number varchar
+  deal_date date
+  closed_date date
+  volume_total decimal(18,4)
+  price_avg decimal(18,4)
+  mtm_price_avg decimal(18,4)
+  revenue_total decimal(18,4)
+  cogs_total decimal(18,4)
+  pnl_total decimal(18,4)
+  trade_count int
+}
+
+Table DIM_ACCOUNT {
+  account_key int [pk, note: "Surrogate key (SCD2 version key)"]
+  account_id int [note: "Natural/business key (stable ID)"]
+  account_name varchar
+  account_parent_id int [note: "Self-reference; NULL for top-level"]
+  country_id int [note: "references DIM_COUNTRY"]
+  is_intercompany bit
+  effective_from date
+  effective_to date
+  is_current bit
+}
+
+Table DIM_COUNTRY {
+  country_id int [pk, note: "Natural/business key (stable ID)"]
+  country_name varchar
+}
+
+Table DIM_PRODUCT {
+  product_key int [pk]
+  product_id varchar
+  group_node_key int [note: "FK DIM_PRODUCT_GROUP_HIERARCHY (Subgroup node)"]
+  category_node_key int [note: "FK DIM_PRODUCT_CATEGORY_HIERARCHY (Category/Subcategory node)"]
+  effective_from date
+  effective_to date
+  is_current bit
+}
+
+Table DIM_PRODUCT_GROUP_HIERARCHY {
+  node_key int [pk, note: "Unique node (Group/Subgroup)"]
+  parent_node_key int [note: "Self-reference to parent group; NULL for top level"]
+  node_level varchar [note: "e.g. 'Group' or 'Subgroup'"]
+  node_code varchar [note: "Group/Subgroup code"]
+  node_name varchar [note: "Group/Subgroup name"]
+}
+
+Table DIM_PRODUCT_CATEGORY_HIERARCHY {
+  node_key int [pk, note: "Unique node (Category or Subcategory)"]
+  parent_node_key int [note: "Self-reference; NULL for top-level Category"]
+  node_level varchar [note: "e.g. 'Category' or 'Subcategory'"]
+  node_name varchar [note: "Category/Subcategory name"]
+}
+
+Table DIM_TRADER {
+  trader_key int [pk, note: "Surrogate key (SCD2 version key)"]
+  trader_id int [note: "Natural/business key (stable ID)"]
+  trader_name varchar
+  job_position_key int [note: "FK DIM_JOB_POSITION"]
+  department_key int [note: "FK DIM_DEPARTMENT"]
+  effective_from date
+  effective_to date
+  is_current bit
+}
+
+Table DIM_JOB_POSITION {
+  job_position_key int [pk]
+  job_title varchar
+}
+
+Table DIM_DEPARTMENT {
+  department_key int [pk]
+  department_name varchar
+}
+
+Table DIM_CURRENCY {
+  currency_id int [pk, note: "Natural/business key (stable ID)"]
+  currency_code varchar
+}
+
+Table DIM_UOM {
+  uom_id int [pk, note: "Natural/business key (stable ID)"]
+  uom_code varchar
+}
+
+Table DIM_COMPANY {
+  company_key int [pk, note: "Surrogate key (SCD2 version key)"]
+  company_id int [note: "Natural/business key (stable ID)"]
+  company_code varchar
+  effective_from date
+  effective_to date
+  is_current bit
+}
+
+Table DIM_DIRECTION {
+  direction_key int [pk]
+  direction varchar
+}
+
+Table DIM_TRADESTATUS {
+  tradestatus_key int [pk, note: "Natural/business key (stable ID)"]
+  tradeline_status varchar
+}
+
+Table DIM_TRADETYPE {
+  tradetype_key int [pk, note: "Natural/business key (stable ID)"]
+  trade_type varchar
+}
+
+Table DIM_RECORDSOURCE {
+  recordsource_key int [pk, note: "Natural/business key (stable ID)"]
+  record_source varchar
+}
+
+Table DIM_MATCHIND {
+  matchind_key int [pk, note: "Natural/business key (stable ID)"]
+  match_indicator varchar
+}
+
+/* ===== Relationships ===== */
+
+Ref: FACT_TRADE_SNAPSHOT.snapshot_date_key > DIM_DATE.date_key
+Ref: FACT_TRADE_SNAPSHOT.account_key > DIM_ACCOUNT.account_key
+Ref: FACT_TRADE_SNAPSHOT.product_key > DIM_PRODUCT.product_key
+Ref: FACT_TRADE_SNAPSHOT.trader_key > DIM_TRADER.trader_key
+Ref: FACT_TRADE_SNAPSHOT.currency_id > DIM_CURRENCY.currency_id
+Ref: FACT_TRADE_SNAPSHOT.uom_id > DIM_UOM.uom_id
+Ref: FACT_TRADE_SNAPSHOT.company_key > DIM_COMPANY.company_key
+Ref: FACT_TRADE_SNAPSHOT.direction_key > DIM_DIRECTION.direction_key
+Ref: FACT_TRADE_SNAPSHOT.tradestatus_key > DIM_TRADESTATUS.tradestatus_key
+Ref: FACT_TRADE_SNAPSHOT.tradetype_key > DIM_TRADETYPE.tradetype_key
+Ref: FACT_TRADE_SNAPSHOT.recordsource_key > DIM_RECORDSOURCE.recordsource_key
+Ref: FACT_TRADE_SNAPSHOT.matchind_key > DIM_MATCHIND.matchind_key
+
+Ref: DIM_ACCOUNT.country_id > DIM_COUNTRY.country_id
+
+Ref: DIM_PRODUCT.group_node_key > DIM_PRODUCT_GROUP_HIERARCHY.node_key
+Ref: DIM_PRODUCT.category_node_key > DIM_PRODUCT_CATEGORY_HIERARCHY.node_key
+
+Ref: DIM_PRODUCT_GROUP_HIERARCHY.parent_node_key > DIM_PRODUCT_GROUP_HIERARCHY.node_key
+Ref: DIM_PRODUCT_CATEGORY_HIERARCHY.parent_node_key > DIM_PRODUCT_CATEGORY_HIERARCHY.node_key
+
+Ref: DIM_TRADER.job_position_key > DIM_JOB_POSITION.job_position_key
+Ref: DIM_TRADER.department_key > DIM_DEPARTMENT.department_key
